@@ -13,22 +13,11 @@ async fn main() -> Result<()> {
         .on_builtin(&anvil.ws_endpoint())
         .await?;
 
+    // workaround:
+    // drop(anvil.child_mut().stdout.take());
+
     let block_subscription = provider.subscribe_blocks().await?;
     let mut block_stream = block_subscription.into_stream();
-
-    //workaroud:
-    /*let child = anvil.child_mut();
-    let stdout = child.stdout.take().unwrap();
-
-    tokio::task::spawn(async {
-        use std::io::{BufRead, BufReader};
-
-        let mut reader = BufReader::new(stdout);
-        loop {
-            let mut line = String::new();
-            reader.read_line(&mut line).unwrap();
-        }
-    });*/
 
     while let Some(block) = block_stream.next().await {
         let block_number = block.header.number.expect("failed to get block number");
